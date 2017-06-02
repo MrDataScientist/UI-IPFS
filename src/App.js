@@ -88,8 +88,9 @@ ipfsAddr2:[]
 this.IpfsAPI = IpfsAPI('ipfs.io', '', {protocol: 'http', progress: 'false'})
 this.ipfsHost = new IpfsAPI({ host: 'ipfs.io', protocol: 'http', port: '', 'progress': false });
 
-this.IpfsAPIX = IpfsAPI('ipfs.io/api/v0/object/get?arg=', '', {protocol: 'http', progress: 'false'})
-this.ipfsHostX = new IpfsAPI({ host: 'ipfs.io/api/v0/object/get?arg=', protocol: 'http', port: '', 'progress': false });
+
+
+
 
   }
 
@@ -250,18 +251,36 @@ var fulladdr = addr1 + addr2;
 
        // curl "http://127.0.0.1:5001/api/v0/object/get?arg=QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV
      const multihashStr = 'QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV' // here just once
-       this.ipfsHost.cat(multihashStr, function(err, res) {
-                  if(err || !res) return console.error("ipfs cat error", err, res);
-                  if(res.readable) {
-                         console.error('unhandled: cat result is a pipe', res);
-                   } else {
-                         console.log("Inside Printing");
+  //     this.ipfsHost.cat(multihashStr, function(err, res) {
+//                  if(err || !res) return console.error("ipfs cat error", err, res);
+//                  if(res.readable) {
+//                         console.error('unhandled: cat result is a pipe', res);
+//                   } else {
+//                         console.log("Inside Printing");
+//
+//                          console.log(multihashStr);
+//                            console.log(res);
+//
+//
+//                    }
+//      });
 
-                          console.log(multihashStr);
-                            console.log(res);
+      this.ipfsHost.cat(multihashStr, function(err, stream) {
 
+                    var res = ''
 
-                    }
+                  stream.on('data', function (chunk) {
+                                    res += chunk.toString()
+                  })
+
+              stream.on('error', function (err) {
+                     console.error('Oh nooo', err)
+            })
+
+           stream.on('end', function () {
+                      console.log('Got:', res)
+          })
+
       });
 
 
@@ -277,8 +296,8 @@ var fulladdr = addr1 + addr2;
        })
 
 */
-
-/*       this.IpfsAPI.add(new Buffer(zstr), function (err, res){
+var zstr = "Hello from trevor at Zillerium"
+       this.IpfsAPI.add(new Buffer(zstr), function (err, res){
               console.log("hello");
               if(err || !res) return console.error("ipfs add error", err, res);
               else{
@@ -295,7 +314,7 @@ var fulladdr = addr1 + addr2;
             });
 
 
-
+/*
        this.IpfsAPI.add([new Buffer('hello world from Zillerium')]).then((res) => {
        // do something with res
        console.log(res);
