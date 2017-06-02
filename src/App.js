@@ -5,11 +5,20 @@ import Web3 from 'web3'
 import _ from 'lodash'
 import { Navbar, Jumbotron, Button } from 'react-bootstrap';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
+import IpfsAPI from 'ipfs-api'
+//const IpfsAPI = require('ipfs-api')
+
+//var ETHEREUM_CLIENT = new Web3(new Web3.providers.HttpProvider("http://104.236.58.158:8545"))
 
 var ETHEREUM_CLIENT = new Web3(new Web3.providers.HttpProvider("http://104.236.58.158:8545"))
+
 var peopleContractABI = [{"constant":true,"inputs":[],"name":"getPeople","outputs":[{"name":"","type":"bytes32[]"},{"name":"","type":"bytes32[]"},{"name":"","type":"uint256[]"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"_firstName","type":"bytes32"},{"name":"_lastName","type":"bytes32"},{"name":"_age","type":"uint256"}],"name":"addPerson","outputs":[{"name":"success","type":"bool"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"people","outputs":[{"name":"firstName","type":"bytes32"},{"name":"lastName","type":"bytes32"},{"name":"age","type":"uint256"}],"payable":false,"type":"function"}]
 
 var reviewContractABI = [{"constant":false,"inputs":[{"name":"_companyName","type":"bytes32"},{"name":"_companyReviewer","type":"bytes32"},{"name":"_companyReview","type":"uint256"}],"name":"addReview","outputs":[{"name":"success","type":"bool"}],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"getReviews","outputs":[{"name":"","type":"bytes32[]"},{"name":"","type":"bytes32[]"},{"name":"","type":"uint256[]"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"reviews","outputs":[{"name":"companyName","type":"bytes32"},{"name":"companyReviewer","type":"bytes32"},{"name":"companyReview","type":"uint256"}],"payable":false,"type":"function"}]
+
+
+var ipfsContractABI = [{"constant":true,"inputs":[],"name":"getIpfsData","outputs":[{"name":"","type":"bytes32[]"},{"name":"","type":"bytes32[]"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"_addr1","type":"bytes32"},{"name":"_addr2","type":"bytes32"}],"name":"addIpfs","outputs":[{"name":"success","type":"bool"}],"payable":true,"type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"ipfsrecs","outputs":[{"name":"addr1","type":"bytes32"},{"name":"addr2","type":"bytes32"}],"payable":false,"type":"function"}]
+
 
 //var UserMessage = '';
 
@@ -18,13 +27,24 @@ var reviewContractABI = [{"constant":false,"inputs":[{"name":"_companyName","typ
 var peopleContractAddress = '0xc9a79464fffab1bd9f355a472b3e255f61a68cec'
 
 var reviewContractAddress = '0x993374073fea30f0e354b15bcf95419bf4b84c6a'
+
+var ipfsContractAddress = '0x8d3e374e9dfcf7062fe8fc5bd5476b939a99b3ed'
+
 // 0x993374073fea30f0e354b15bcf95419bf4b84c6a
 
 var peopleContract = ETHEREUM_CLIENT.eth.contract(peopleContractABI).at(peopleContractAddress)
 var reviewContract = ETHEREUM_CLIENT.eth.contract(reviewContractABI).at(reviewContractAddress)
+var ipfsContract = ETHEREUM_CLIENT.eth.contract(ipfsContractABI).at(ipfsContractAddress)
+
+
 ETHEREUM_CLIENT.eth.defaultAccount = ETHEREUM_CLIENT.eth.coinbase;
 
-
+/*Qme8AMiwMC
+MDdxAY6gZ3
+8qJkepVkQk
+YdPmkUebzD
+yiuS1s
+*/
 //var MyContract = Web3.eth.contract(ABI);
 //var myContractInstance = MyContract.at('0x78e97bcc5b5dd9ed228fed7a4887c0d7287344a9');
 
@@ -55,9 +75,22 @@ class App extends Component {
       companyReviewers: ['trevor'],
       companyReviews: [0],
        list: ['unicycle', 'juggling clubs', 'stilts'],
-       UserMessage:[]
-
+       UserMessage:[],
+ipfsAddr1:[],
+ipfsAddr2:[]
     }
+         this.IpfsAPI1 = IpfsAPI('162.243.237.41', '5001', {protocol: 'http', progress: 'false'})
+  this.ipfsHost1 = new IpfsAPI({ host: '162.243.237.41', protocol: 'http', port: '5001', 'progress': false });
+
+//  this.IpfsAPI = IpfsAPI('jenbil.com', '5001', {protocol: 'http', progress: 'false'})
+//this.ipfsHost = new IpfsAPI({ host: 'jenbil.com', protocol: 'http', port: '5001', 'progress': false });
+
+this.IpfsAPI = IpfsAPI('ipfs.io', '', {protocol: 'http', progress: 'false'})
+this.ipfsHost = new IpfsAPI({ host: 'ipfs.io', protocol: 'http', port: '', 'progress': false });
+
+this.IpfsAPIX = IpfsAPI('ipfs.io/api/v0/object/get?arg=', '', {protocol: 'http', progress: 'false'})
+this.ipfsHostX = new IpfsAPI({ host: 'ipfs.io/api/v0/object/get?arg=', protocol: 'http', port: '', 'progress': false });
+
   }
 
 handleThumbsUp() {
@@ -124,6 +157,8 @@ handleThumbsDown() {
     this.setState({list: newList});
   }
 
+
+
   onClick(index) {
     var newList = this.state.list.slice();
     newList.splice(index, 1);
@@ -136,6 +171,7 @@ CompanyNameInput
 
     var data = peopleContract.getPeople()
     var reviewData = reviewContract.getReviews()
+    var ipfsBCData = ipfsContract.getIpfsData()
 
   //  reviewContract.addReview("company1", "trevor lee oakley", 1)
 
@@ -146,8 +182,9 @@ CompanyNameInput
 
       companyNames: String(reviewData[0]).split(','),
       companyReviewers: String(reviewData[1]).split(','),
-      companyReviews: String(reviewData[2]).split(',')
-
+      companyReviews: String(reviewData[2]).split(','),
+      ipfsAddr1: String(ipfsBCData[0]).split(','),
+      ipfsAddr2: String(ipfsBCData[1]).split(',')
 
     })
   }
@@ -185,43 +222,106 @@ var ShowMessage = [];
     })
 
     var products =[];
-    for (var i = 0; i < this.state.companyNames.length; i++) {
-      var aCompanyName = ETHEREUM_CLIENT.toAscii(this.state.companyNames[i])
-      var aCompanyReviewer = ETHEREUM_CLIENT.toAscii(this.state.companyReviewers[i])
-      var aCompanyReview = this.state.companyReviews[i]
-         products.push({ 'companyindex': i, 'companyname': aCompanyName, 'companyreviewer': aCompanyReviewer, 'companyreview': aCompanyReview });
+    for (var i = 0; i < this.state.ipfsAddr1.length; i++) {
+      var aIPDFDataRecHex = this.state.ipfsAddr1[i]
+aIPDFDataRecHex=aIPDFDataRecHex.replace('0x','');
+aIPDFDataRecHex=aIPDFDataRecHex.replace('00','');
+      var hex  = aIPDFDataRecHex.toString();
+    	var aIPDFDataRec = '';
+    	for (var n = 0; n < hex.length; n += 2) {
+    		aIPDFDataRec += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
+    	}
+var addr1 = aIPDFDataRec;
+      aIPDFDataRecHex = this.state.ipfsAddr2[i]
+      aIPDFDataRecHex=aIPDFDataRecHex.replace('0x','');
+      aIPDFDataRecHex=aIPDFDataRecHex.replace(/00/g,'');
+
+
+
+      var hex  = aIPDFDataRecHex.toString();
+    	var aIPDFDataRec = '';
+    	for (var n = 0; n < hex.length; n += 2) {
+    		aIPDFDataRec += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
+    	}
+var addr2 = aIPDFDataRec;
+var fulladdr = addr1 + addr2;
+         products.push({ 'reviewIndex': i, 'ipfsAddr': fulladdr });
        }
+
+       // curl "http://127.0.0.1:5001/api/v0/object/get?arg=QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV
+     const multihashStr = 'QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV' // here just once
+       this.ipfsHost.cat(multihashStr, function(err, res) {
+                  if(err || !res) return console.error("ipfs cat error", err, res);
+                  if(res.readable) {
+                         console.error('unhandled: cat result is a pipe', res);
+                   } else {
+                         console.log("Inside Printing");
+
+                          console.log(multihashStr);
+                            console.log(res);
+
+
+                    }
+      });
+
+
+
+/*
+
+       this.IpfsAPI.get(multihashStr, function (err, stream) {
+         stream.on('data', (file) => {
+           // write the file's path and contents to standard out
+           console.log(file.path)
+           file.content.pipe(process.stdout)
+         })
+       })
+
+*/
+
+/*       this.IpfsAPI.add(new Buffer(zstr), function (err, res){
+              console.log("hello");
+              if(err || !res) return console.error("ipfs add error", err, res);
+              else{
+                console.log("no issue");
+                console.log(res);
+                res.forEach(function(text) {
+                       console.log('successfully stored', text.hash);
+                     //  console.log('successfully stored', text.path);
+                     //  display(file.Hash);
+                        var textaddress=text.hash;
+                        console.log(textaddress);
+                });
+              }
+            });
+
+
+
+       this.IpfsAPI.add([new Buffer('hello world from Zillerium')]).then((res) => {
+       // do something with res
+       console.log(res);
+
+    //   var ipfsId = res[0].hash;
+    //   console(ipfsId);
+     }).catch((err) => { console.log("error in api call ") })
+*/
 products.reverse();
        var tableHtml =
     <BootstrapTable data={products} striped={true} hover={true}>
-        <TableHeaderColumn dataField="companyindex" isKey={true} dataAlign="center" dataSort={true}>Review ID</TableHeaderColumn>
-          <TableHeaderColumn dataField="companyname"  dataAlign="center" dataSort={true}>Company Name</TableHeaderColumn>
-          <TableHeaderColumn dataField="companyreviewer" >Reviewer</TableHeaderColumn>
-          <TableHeaderColumn dataField="companyreview" >Review</TableHeaderColumn>
-      </BootstrapTable>
+        <TableHeaderColumn dataField="reviewIndex" isKey={true} dataAlign="center" dataSort={true}>Review ID</TableHeaderColumn>
+          <TableHeaderColumn dataField="ipfsAddr"  dataAlign="center" dataSort={true}>Ipfs Address</TableHeaderColumn>
 
-    var CompanyReviews = []
-    _.each(this.state.companyNames, (value, index) => {
-      CompanyReviews.push(
-        <tr>
-        <td>{ETHEREUM_CLIENT.toAscii(this.state.companyNames[index])}</td>
-        <td>{ETHEREUM_CLIENT.toAscii(this.state.companyReviewers[index])}</td>
-        <td>{this.state.companyReviews[index]}</td>
-        </tr>
+       </BootstrapTable>
 
 
 
-
-      )
-    })
 
     return (
       <div className="App">
         <div className="App-header">
 
-          <h2>Zillerium Demo (Reviews on the blockchain)</h2>
+          <h2>Zillerium Demo (IPSF on the blockchain)</h2>
 
-        </div>
+        </div>Reviews
   <div  className="App-Content">
 
   <input
@@ -246,7 +346,7 @@ products.reverse();
 </div>
 
         <p className="App-intro">
-          Add your review to the blockchain. It takes a few minutes to update the blockchain according to the mining.
+          Add your review to ISPF and the Blockchain. It takes a few minutes to update the blockchain according to the mining.
 
         </p>
 
