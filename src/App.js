@@ -223,6 +223,8 @@ var ShowMessage = [];
     })
 
     var products =[];
+    var reviewIndexArray = [];
+    var ipfsAddressArray = [];
     for (var i = 0; i < this.state.ipfsAddr1.length; i++) {
       var aIPDFDataRecHex = this.state.ipfsAddr1[i]
 aIPDFDataRecHex=aIPDFDataRecHex.replace('0x','');
@@ -246,8 +248,35 @@ var addr1 = aIPDFDataRec;
     	}
 var addr2 = aIPDFDataRec;
 var fulladdr = addr1 + addr2;
-         products.push({ 'reviewIndex': i, 'ipfsAddr': fulladdr });
+fulladdr = 'QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV'
+reviewIndexArray[i]=i;
+ipfsAddressArray[i]=fulladdr;
+ 
+
+
+
+        // products.push({ 'reviewIndex': i, 'ipfsAddr': fulladdr });
        }
+
+    for (var i = 0; i < ipfsAddressArray.length; i++) {
+      var fulladdr = ipfsAddressArray[i];
+      this.ipfsHost.cat(fulladdr, function(err, stream) {
+          var res = ''
+          stream.on('data', function (chunk) {
+              res += chunk.toString()
+                products.push({ 'reviewIndex': i, 'ipfsAddr': fulladdr, 'ipfsText': res });
+          })
+          stream.on('error', function (err) {
+              console.error('Oh nooo', err)
+          })
+          stream.on('end', function () {
+              console.log('Got:', res)
+
+         })
+
+     });
+    }
+
 
        // curl "http://127.0.0.1:5001/api/v0/object/get?arg=QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV
      const multihashStr = 'QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV' // here just once
@@ -296,13 +325,13 @@ var fulladdr = addr1 + addr2;
        })
 
 */
-var zstr = "Hello from trevor at Zillerium"
-       this.IpfsAPI.add(new Buffer(zstr), function (err, res){
+/*var zstr = "Hello from trevor at Zillerium 2"
+       this.ipfsAPI.add(new Buffer(zstr), function (err, res){
               console.log("hello");
               if(err || !res) return console.error("ipfs add error", err, res);
               else{
-                console.log("no issue");
-                console.log(res);
+//                console.log("no issue");
+//                console.log(res);
                 res.forEach(function(text) {
                        console.log('successfully stored', text.hash);
                      //  console.log('successfully stored', text.path);
@@ -312,7 +341,7 @@ var zstr = "Hello from trevor at Zillerium"
                 });
               }
             });
-
+*/
 
 /*
        this.IpfsAPI.add([new Buffer('hello world from Zillerium')]).then((res) => {
@@ -328,6 +357,7 @@ products.reverse();
     <BootstrapTable data={products} striped={true} hover={true}>
         <TableHeaderColumn dataField="reviewIndex" isKey={true} dataAlign="center" dataSort={true}>Review ID</TableHeaderColumn>
           <TableHeaderColumn dataField="ipfsAddr"  dataAlign="center" dataSort={true}>Ipfs Address</TableHeaderColumn>
+          <TableHeaderColumn dataField="ipfsText"  dataAlign="center" dataSort={true}>Ipfs Text</TableHeaderColumn>
 
        </BootstrapTable>
 
