@@ -77,7 +77,9 @@ class App extends Component {
        list: ['unicycle', 'juggling clubs', 'stilts'],
        UserMessage:[],
 ipfsAddr1:[],
-ipfsAddr2:[]
+ipfsAddr2:[],
+ipfsAddrText:[],
+ipfsAddrGlobal:[]
     }
          this.IpfsAPI1 = IpfsAPI('162.243.237.41', '5001', {protocol: 'http', progress: 'false'})
   this.ipfsHost1 = new IpfsAPI({ host: '162.243.237.41', protocol: 'http', port: '5001', 'progress': false });
@@ -173,6 +175,61 @@ CompanyNameInput
     var data = peopleContract.getPeople()
     var reviewData = reviewContract.getReviews()
     var ipfsBCData = ipfsContract.getIpfsData()
+    var ipfs1 = String(ipfsBCData[0]).split(',')
+    var ipfs2 =  String(ipfsBCData[1]).split(',')
+
+
+
+    var ipfsAddressLocalArray = [];
+    for (var i = 0; i < ipfs1.length; i++) {
+        var aIPDFDataRecHex = ipfs1[i]
+          aIPDFDataRecHex=aIPDFDataRecHex.replace('0x','');
+          aIPDFDataRecHex=aIPDFDataRecHex.replace('00','');
+          var hex  = aIPDFDataRecHex.toString();
+    	     var aIPDFDataRec = '';
+    	      for (var n = 0; n < hex.length; n += 2) {
+    		        aIPDFDataRec += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
+    	         }
+          var addr1 = aIPDFDataRec;
+      aIPDFDataRecHex = ipfs2[i]
+      aIPDFDataRecHex=aIPDFDataRecHex.replace('0x','');
+      aIPDFDataRecHex=aIPDFDataRecHex.replace(/00/g,'');
+      var hex  = aIPDFDataRecHex.toString();
+    	var aIPDFDataRec = '';
+    	for (var n = 0; n < hex.length; n += 2) {
+    		aIPDFDataRec += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
+    	}
+      var addr2 = aIPDFDataRec;
+      var fulladdr = addr1 + addr2;
+
+fulladdr =     'QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV';
+
+        ipfsAddressLocalArray[i]=fulladdr;
+
+
+        // products.push({ 'reviewIndex': i, 'ipfsAddr': fulladdr });
+       }
+
+       var ipfsTextLocalArray = [];
+       for (var i = 0; i < ipfsAddressLocalArray.length; i++) {
+         var fulladdr = ipfsAddressLocalArray[i];
+         this.ipfsHost.cat(fulladdr, function(err, stream) {
+             var res = ''
+             stream.on('data', function (chunk) {
+                 res += chunk.toString()
+                 ipfsTextLocalArray[i]=res;
+
+             })
+             stream.on('error', function (err) {
+                 console.error('Oh nooo', err)
+             })
+             stream.on('end', function () {
+                 console.log('Got:', res)
+
+            })
+
+        });
+       }
 
   //  reviewContract.addReview("company1", "trevor lee oakley", 1)
 
@@ -184,8 +241,10 @@ CompanyNameInput
       companyNames: String(reviewData[0]).split(','),
       companyReviewers: String(reviewData[1]).split(','),
       companyReviews: String(reviewData[2]).split(','),
-      ipfsAddr1: String(ipfsBCData[0]).split(','),
-      ipfsAddr2: String(ipfsBCData[1]).split(',')
+    //  ipfsAddr1: String(ipfsBCData[0]).split(','),
+  //    ipfsAddr2: String(ipfsBCData[1]).split(',')
+  ipfsAddrText: String(ipfsTextLocalArray[0]).split(','),
+ipfsAddrGlobal:  String(ipfsAddressLocalArray[0]).split(','),
 
     })
   }
@@ -224,58 +283,10 @@ var ShowMessage = [];
 
     var products =[];
     var reviewIndexArray = [];
-    var ipfsAddressArray = [];
-    for (var i = 0; i < this.state.ipfsAddr1.length; i++) {
-      var aIPDFDataRecHex = this.state.ipfsAddr1[i]
-aIPDFDataRecHex=aIPDFDataRecHex.replace('0x','');
-aIPDFDataRecHex=aIPDFDataRecHex.replace('00','');
-      var hex  = aIPDFDataRecHex.toString();
-    	var aIPDFDataRec = '';
-    	for (var n = 0; n < hex.length; n += 2) {
-    		aIPDFDataRec += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
-    	}
-var addr1 = aIPDFDataRec;
-      aIPDFDataRecHex = this.state.ipfsAddr2[i]
-      aIPDFDataRecHex=aIPDFDataRecHex.replace('0x','');
-      aIPDFDataRecHex=aIPDFDataRecHex.replace(/00/g,'');
 
-
-
-      var hex  = aIPDFDataRecHex.toString();
-    	var aIPDFDataRec = '';
-    	for (var n = 0; n < hex.length; n += 2) {
-    		aIPDFDataRec += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
-    	}
-var addr2 = aIPDFDataRec;
-var fulladdr = addr1 + addr2;
-fulladdr = 'QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV'
-reviewIndexArray[i]=i;
-ipfsAddressArray[i]=fulladdr;
- 
-
-
-
-        // products.push({ 'reviewIndex': i, 'ipfsAddr': fulladdr });
+    for (var i = 0; i < this.state.ipfsAddrGlobal.length; i++) {
+        products.push({ 'reviewIndex': i, 'ipfsAddr': this.state.ipfsAddrGlobal[i], 'ipfsText': this.state.ipfsAddrText[i]  });
        }
-
-    for (var i = 0; i < ipfsAddressArray.length; i++) {
-      var fulladdr = ipfsAddressArray[i];
-      this.ipfsHost.cat(fulladdr, function(err, stream) {
-          var res = ''
-          stream.on('data', function (chunk) {
-              res += chunk.toString()
-                products.push({ 'reviewIndex': i, 'ipfsAddr': fulladdr, 'ipfsText': res });
-          })
-          stream.on('error', function (err) {
-              console.error('Oh nooo', err)
-          })
-          stream.on('end', function () {
-              console.log('Got:', res)
-
-         })
-
-     });
-    }
 
 
        // curl "http://127.0.0.1:5001/api/v0/object/get?arg=QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV
