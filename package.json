@@ -15,6 +15,9 @@
   "devDependencies": {
     "react-scripts": "0.9.5"
   },
+  "dependencies": {
+    "ipfs-api": "^14.0.0"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
