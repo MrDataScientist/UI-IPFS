@@ -10,13 +10,12 @@
     "react-bootstrap-dropdown": "^0.3.0",
     "react-bootstrap-table": "^3.2.1",
     "react-dom": "^15.4.2",
-    "web3": "^0.18.4"
+    "web3": "^0.18.4",
+    "ipfs-api": "^14.0.0"
+
   },
   "devDependencies": {
     "react-scripts": "0.9.5"
-  },
-  "dependencies": {
-    "ipfs-api": "^14.0.0"
   },
   "scripts": {
     "start": "react-scripts start",
