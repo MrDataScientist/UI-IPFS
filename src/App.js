@@ -12,28 +12,71 @@ import IpfsAPI from 'ipfs-api'
 
 var ETHEREUM_CLIENT = new Web3(new Web3.providers.HttpProvider("http://104.236.58.158:8545"))
 
-var ipfsContractABI = [{
+var ipfsContractABI =
+[
+  {
     "constant": true,
     "inputs": [],
     "name": "getIpfsData",
-    "outputs": [{"name": "", "type": "bytes32[]"}, {"name": "", "type": "bytes32[]"}],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
     "payable": false,
     "type": "function"
-}, {
+  },
+  {
     "constant": false,
-    "inputs": [{"name": "_addr1", "type": "bytes32"}, {"name": "_addr2", "type": "bytes32"}],
+    "inputs": [
+      {
+        "name": "_addr1",
+        "type": "bytes32"
+      },
+      {
+        "name": "_addr2",
+        "type": "bytes32"
+      }
+    ],
     "name": "addIpfs",
-    "outputs": [{"name": "success", "type": "bool"}],
+    "outputs": [
+      {
+        "name": "success",
+        "type": "bool"
+      }
+    ],
     "payable": true,
     "type": "function"
-}, {
+  },
+  {
     "constant": true,
-    "inputs": [{"name": "", "type": "uint256"}],
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "name": "ipfsrecs",
-    "outputs": [{"name": "addr1", "type": "bytes32"}, {"name": "addr2", "type": "bytes32"}],
+    "outputs": [
+      {
+        "name": "addr1",
+        "type": "bytes32"
+      },
+      {
+        "name": "addr2",
+        "type": "bytes32"
+      }
+    ],
     "payable": false,
     "type": "function"
-}]
+  }
+]
+
 
 var ipfsContractAddress = '0x8d3e374e9dfcf7062fe8fc5bd5476b939a99b3ed'
 
@@ -48,6 +91,7 @@ class App extends Component {
         super(props)
         this.state = {
             ipfsStateText: [],
+            UserMessage:[],
             ipfsStateAddress: [],
             products: []
         };
@@ -57,6 +101,42 @@ class App extends Component {
         this.IpfsAPI = IpfsAPI('ipfs.io', '', {protocol: 'http', progress: 'false'})
         this.ipfsHost = new IpfsAPI({host: 'ipfs.io', protocol: 'http', port: '', 'progress': false});
     }
+
+    addAddress() {
+      var IPFSAddress = document.getElementById("NewIPFSAddress").value;
+      document.getElementById("NewIPFSAddress").value = "";
+var IPFS1 = "";
+var IPFS2 = "";
+var err = 0;
+if (IPFSAddress.length>31) {
+  if (IPFSAddress.length>63) {
+    var aMessage = this.state.UserMessage.slice();
+      aMessage.push('Error - string too long - max is 32 chars')
+    this.setState({UserMessage:aMessage});
+    var err =1;
+  }
+  else {
+    IPFS1 = IPFSAddress.substring(0,31);
+    IPFS2 = IPFSAddress.substring(32,IPFSAddress.length-1);
+
+  }
+} else {
+  IPFS2 = "";
+}
+if (err==0) {
+  ipfsContract.addIpfs(IPFS1, IPFS2);
+
+  var aMessage = this.state.UserMessage.slice();
+    aMessage.push('Your IPFS ADDRESS will be added in a few minutes to the blockchain - please refresh then')
+  this.setState({UserMessage:aMessage});
+}
+
+
+
+      //reviewContract.addReview("company12", "trevor lee oakley", 1)
+    }
+
+
 
     componentWillMount() {
         console.log(ETHEREUM_CLIENT)
@@ -86,7 +166,7 @@ class App extends Component {
             var addr2 = aIPDFDataRec;
             var fulladdr = addr1 + addr2;
 
-            fulladdr = 'QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV';
+        //    fulladdr = 'QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV';
 
             ipfsAddressLocalArray[i] = fulladdr;
 
@@ -196,13 +276,25 @@ class App extends Component {
 
     render() {
 
+      var ShowMessage = [];
+          this.state.UserMessage.forEach((item, i) => {
+              ShowMessage.push(<p className = "jenbil-warn">{item}</p>);
+          });
 
         return (
             <div>
                 <p className="App-intro">
-                    Add your review to ISPF and the Blockchain. It takes a few minutes to update the blockchain
-                    according to the mining.
+                    This is a demo to add text and read text from IPFS which is referenced by Ethereum.
                 </p>
+                <input
+                     type="text"
+                     id="NewIPFSAddress"
+                     placeholder="New Address"
+
+                     name="NewAddressName"
+                 />
+                        <button type="button" className="btn btn-link" onClick={() => this.addAddress()}>Add</button>
+               {ShowMessage}
 
                 <BootstrapTable data={this.state.products} striped={true} hover={true}>
                     <TableHeaderColumn dataField="reviewIndex" isKey={true} dataAlign="center" dataSort={true}>Review
@@ -217,6 +309,14 @@ class App extends Component {
         );
     }
 }
+
+//added QmeAfcM5esSxEU3PDdzS3MZXbvPWYdCCy546Typk95is9b z1
+//root@ubuntu-512mb-nyc3-01:~# ipfs add z2
+//added QmSXbYEcsWdymeodZqqBNpPZyeEsW1tho1hJmDD59dRxE2 z2
+//root@ubuntu-512mb-nyc3-01:~# ipfs add z3
+//added QmNMDfPLys9WXzSjbE7Phkh29WLeNVTrdocjQXFFXwvFMu z3
+//root@ubuntu-512mb-nyc3-01:~#
+
 
 export
 default
