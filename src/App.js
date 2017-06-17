@@ -98,8 +98,49 @@ class App extends Component {
         //  this.IpfsAPI = IpfsAPI('jenbil.com', '5001', {protocol: 'http', progress: 'false'})
 //this.ipfsHost = new IpfsAPI({ host: 'jenbil.com', protocol: 'http', port: '5001', 'progress': false });
 
-        this.IpfsAPI = IpfsAPI('ipfs.io', '', {protocol: 'http', progress: 'false'})
+
+//this.IpfsAPI = IpfsAPI('127.0.0.1', '5001');
+
+this.IpfsAPI = IpfsAPI({host: 'localhost', port: '5001', protocol: 'http'})
+
+//this.ipfsHost1 = new IpfsAPI({host: '127.0.0.1', protocol: 'http', port: '5001', 'progress': false});
+//        this.IpfsAPI = IpfsAPI('127.0.0.1', '', {protocol: 'http', progress: 'false'})
         this.ipfsHost = new IpfsAPI({host: 'ipfs.io', protocol: 'http', port: '', 'progress': false});
+    }
+
+addIPFSContent() {
+  var zstr = document.getElementById("NewIPFSContent").value;
+  document.getElementById("NewIPFSContent").value = "";
+
+      this.IpfsAPI.add(new Buffer(zstr), function (err, res){
+              console.log("hello");
+              if(err || !res) return console.error("ipfs add error", err, res);
+              else{
+//                console.log("no issue"ipfsAdd);
+//                console.log(res);
+                res.forEach(function(text) {
+                       console.log('successfully stored', text.hash);
+                     //  console.log('successfully stored', text.path);
+                     //  display(file.Hash);
+                        var textaddress=text.hash;
+                        console.log(textaddress);
+                });
+              }
+            });
+}
+
+    addIPFSContent1() {
+      var IPFSContent = document.getElementById("NewIPFSContent").value;
+      document.getElementById("NewIPFSContent").value = "";
+
+      this.IpfsAPI.add([new Buffer(IPFSContent)]).then((res) => {
+    // do something with res
+        console.log(res);
+
+       var ipfsId = res[0].hash;
+        console(ipfsId);
+      }).catch((err) => { console.log("error in api call ") })
+
     }
 
     addAddress() {
@@ -116,8 +157,8 @@ if (IPFSAddress.length>31) {
     var err =1;
   }
   else {
-    IPFS1 = IPFSAddress.substring(0,31);
-    IPFS2 = IPFSAddress.substring(32,IPFSAddress.length-1);
+    IPFS1 = IPFSAddress.substring(0,32);
+    IPFS2 = IPFSAddress.substring(32,IPFSAddress.length);
 
   }
 } else {
@@ -164,13 +205,31 @@ if (err==0) {
                 aIPDFDataRec += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
             }
             var addr2 = aIPDFDataRec;
+
+// fix - bad data in blockchain which causes IPFS cat call to fail - there is not sufficient error handling in that call
+
             var fulladdr = addr1 + addr2;
 
-        //    fulladdr = 'QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV';
+            var errStr1 = "QmWcsZXZJ1hmTS8uXqCriUFCreaNjd5skk9qXAgFFpCaEE";
+            var errStr2 =  "QmXde1ZURUdBRLhpoAxXz2KzXSqdonDmib8jbBD2bkoSyu";
+            var errStr3 = "QmeAfcM5esSxEU3PDdzS3MZXbvPWYdCy546Typk95is9";
 
-            ipfsAddressLocalArray[i] = fulladdr;
+            var errStr4 = "QmeAfcM5esSxEU3PDdzS3MZXbvPWYdCCy546Typk95is9";
+
+               var n1 = errStr1.localeCompare(fulladdr);
+               var n2 = errStr2.localeCompare(fulladdr);
+               var n3 = errStr3.localeCompare(fulladdr);
+               var n4 = errStr4.localeCompare(fulladdr);
+            if ((n1==0) || (n2==0) || (n3==0) || (n4==0)) {
+              // no action
+            } else {
 
 
+            //    fulladdr = 'QmU5KhkgvweYgE3Gsr8A19uFQrq7mszx7dubcoo89cTmAV';
+
+                ipfsAddressLocalArray[i] = fulladdr;
+
+            }
             // products.push({ 'reviewIndex': i, 'ipfsAddr': fulladdr });
         }
 //var ipfsTextLocalArray = [];
@@ -204,6 +263,7 @@ if (err==0) {
 
                     stream.on('data', function (chunk) {
                         ipfsTextLocal += chunk.toString()
+                        console.log('found data '+ ipfsTextLocal)
                     })
                     stream.on('error', function (err) {
                         console.error('Oh nooo', err);
@@ -221,6 +281,7 @@ if (err==0) {
         var _this = this;
         for (var i = 0; i < ipfsAddressLocalArray.length; i++) {
             let fulladdr = ipfsAddressLocalArray[i];
+            console.log('processing addr - ' + fulladdr);
             ipfsTextLocalFn(fulladdr, ipfsHostLocal)
                 .then((response) => {
                     console.log('the reponse with ipfsTextLocalArray', response);
@@ -293,7 +354,15 @@ if (err==0) {
 
                      name="NewAddressName"
                  />
-                        <button type="button" className="btn btn-link" onClick={() => this.addAddress()}>Add</button>
+                        <button type="button" className="btn btn-link" onClick={() => this.addAddress()}>Add IPFS Address</button>
+                        <input
+                             type="text"
+                             id="NewIPFSContent"
+                             placeholder="New Content"
+
+                             name="NewIPFSContentName"
+                         />
+                          <button type="button" className="btn btn-link" onClick={() => this.addIPFSContent()}>Add IPFS Content</button>
                {ShowMessage}
 
                 <BootstrapTable data={this.state.products} striped={true} hover={true}>
@@ -311,11 +380,31 @@ if (err==0) {
 }
 
 //added QmeAfcM5esSxEU3PDdzS3MZXbvPWYdCCy546Typk95is9b z1
+
+//QmeAfcM5esSxEU3PDdzS3MZXbvPWYdCCy546Typk95is9b
+
+//QmeAfcM5es SxEU3PDdzS 3MZXbvPWYd CCy546Typk 95is9b
+//0123456789 0123456789 0123456789 0123456789 012345
 //root@ubuntu-512mb-nyc3-01:~# ipfs add z2
 //added QmSXbYEcsWdymeodZqqBNpPZyeEsW1tho1hJmDD59dRxE2 z2
 //root@ubuntu-512mb-nyc3-01:~# ipfs add z3
 //added QmNMDfPLys9WXzSjbE7Phkh29WLeNVTrdocjQXFFXwvFMu z3
 //root@ubuntu-512mb-nyc3-01:~#
+
+//[["0x516d5763735a585a4a31686d5453387558714372695546437265614e6a643573",
+//"0x516d586465315a5552556442524c68706f4178587a324b7a585371646f6e446d",
+//"0x516d654166634d35657353784555335044647a53334d5a586276505759644300",
+//"0x516d654166634d35657353784555335044647a53334d5a586276505759644343",
+//"0x516d654166634d35657353784555335044647a53334d5a586276505759644343"],
+//["0x6b6b397158416746467043614545000000000000000000000000000000000000",
+//"0x6962386a62424432626b6f537975000000000000000000000000000000000000",
+//"0x793534365479706b393569733900000000000000000000000000000000000000",
+//"0x793534365479706b393569733900000000000000000000000000000000000000",
+//"0x793534365479706b393569733962000000000000000000000000000000000000"]]
+
+
+//
+
 
 
 export
