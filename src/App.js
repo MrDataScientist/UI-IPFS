@@ -101,8 +101,8 @@ class App extends Component {
 
 //this.IpfsAPI = IpfsAPI('127.0.0.1', '5001');
 
-this.IpfsAPI = IpfsAPI({host: 'localhost', port: '5001', protocol: 'http'})
-
+//this.IpfsAPI = IpfsAPI({host: 'localhost', port: '5001'})
+this.IpfsAPI = IpfsAPI();
 //this.ipfsHost1 = new IpfsAPI({host: '127.0.0.1', protocol: 'http', port: '5001', 'progress': false});
 //        this.IpfsAPI = IpfsAPI('127.0.0.1', '', {protocol: 'http', progress: 'false'})
         this.ipfsHost = new IpfsAPI({host: 'ipfs.io', protocol: 'http', port: '', 'progress': false});
@@ -111,8 +111,11 @@ this.IpfsAPI = IpfsAPI({host: 'localhost', port: '5001', protocol: 'http'})
 addIPFSContent() {
   var zstr = document.getElementById("NewIPFSContent").value;
   document.getElementById("NewIPFSContent").value = "";
+var s = new Buffer(zstr);
+var ipfsAddPromise = function(s) {
+  return new Promise((resolve, reject) => {
 
-      this.IpfsAPI.add(new Buffer(zstr), function (err, res){
+      this.IpfsAPI.add(s, function (err, res){
               console.log("hello");
               if(err || !res) return console.error("ipfs add error", err, res);
               else{
@@ -127,6 +130,41 @@ addIPFSContent() {
                 });
               }
             });
+          });
+
+
+}
+
+            var _this = this;
+
+
+
+                this.IpfsAPI.add(s)
+                    .then((response) => {
+                        console.log('the reponse with add', response);
+
+                          response.forEach(function(text) {
+                                 console.log('successfully stored', text.hash);
+                               //  console.log('successfully stored', text.path);
+                               //  display(file.Hash);
+                                  var textaddress=text.hash;
+                                  console.log(textaddress);
+                          });
+
+                    })
+                    .catch((err) => {
+                        console.log('err', err);
+                    });
+
+
+
+
+
+
+
+
+
+
 }
 
     addIPFSContent1() {
@@ -380,7 +418,7 @@ if (err==0) {
 }
 
 //added QmeAfcM5esSxEU3PDdzS3MZXbvPWYdCCy546Typk95is9b z1
-
+//        QmeAfcM5esSxEU3PDdzS3MZXbvPWYdCCy546Typk95is9b
 //QmeAfcM5esSxEU3PDdzS3MZXbvPWYdCCy546Typk95is9b
 
 //QmeAfcM5es SxEU3PDdzS 3MZXbvPWYd CCy546Typk 95is9b
