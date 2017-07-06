@@ -6,17 +6,25 @@ import Web3 from 'web3'
 import _ from 'lodash'
 import {Navbar, Jumbotron, Button} from 'react-bootstrap';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import IpfsAPI from 'ipfs-api'
+
+
 var axios = require('axios')
+
 
 class App extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {val: 0, increasing: false, contractJson:[], products:[],IPFSContract:'',
-      ETHEREUM_CLIENT: 'a', UserMessage: [], contractAddress: '0x8d3e374e9dfcf7062fe8fc5bd5476b939a99b3ed'}
+    var zIpfsAPI = IpfsAPI('127.0.0.1', '', {protocol: 'http', port: '5001', progress: 'false'})
+    this.state = {val: 0, increasing: false, contractJson:[], products:[],IPFSContract:'', IPFSText: '--',
+      ETHEREUM_CLIENT: 'a', UserMessage: [], contractAddress: '0x8d3e374e9dfcf7062fe8fc5bd5476b939a99b3ed',
+      zIpfsAPIParm: zIpfsAPI}
 
     this.reformatArray = this.reformatArray.bind(this)
     this.reformatArrayEnd = this.reformatArrayEnd.bind(this)
+    this.addIPFSContent = this.addIPFSContent.bind(this)
+
   }
 
   setClient = ( ) => {
@@ -24,7 +32,30 @@ class App extends Component {
   //  this.setState({ ETHEREUM_CLIENT: info });
   }
 
-addIPFSContent() {
+
+
+addIPFSContent(e) {
+  let inputStr = this.refs.b.value;
+  var s = new Buffer(inputStr);
+  var _this = this;
+  _this.state.zIpfsAPIParm.add(s, function (err, res){
+          console.log("hello");
+          if(err || !res) return console.error("ipfs add error", err, res);
+          else{
+//                console.log("no issue"ipfsAdd);
+//                console.log(res);
+            res.forEach(function(text) {
+                   console.log('successfully stored', text.hash);
+                 //  console.log('successfully stored', text.path);
+                 //  display(file.Hash);
+                    var textaddress=text.hash;
+                    console.log(textaddress);
+                    var IPFS1 = textaddress.substring(0,32);
+                    var IPFS2 = textaddress.substring(32,textaddress.length);
+                    _this.state.IPFSContract.addIpfs(IPFS1, IPFS2);
+            });
+          }
+        });
 
 }
 
@@ -59,8 +90,11 @@ w.eth.defaultAccount = w.eth.coinbase;
        let reviewText=[];
        let j=-1;
        for (var i = 0; i < ipfsAddressLocalArray.length; i++) {
+
             let fulladdr = ipfsAddressLocalArray[i];
+            console.log('ipfs address ', fulladdr)
              let url = "http://ipfs.io/api/v0/cat?arg="+fulladdr;
+             console.log("url ", url)
              axios
              .get(url)
              .then(function(result) {
@@ -69,20 +103,20 @@ w.eth.defaultAccount = w.eth.coinbase;
                reviewArray.push(j);
                reviewAddr.push(fulladdr);
                reviewText.push(result.data);
-
-
                _this.setState({
-                        products:  _this.state.products.concat({
-                        'reviewIndex': j,
-                          'ipfsAddr': fulladdr,
-                       'ipfsText': result.data
-                     })
-                 })
+                               products:  _this.state.products.concat({
+                               'reviewIndex': j,
+                                 'ipfsAddr': fulladdr,
+                              'ipfsText': result.data
+                            })
+                        })
+
+               })
 
                .catch(function (error) {
                    console.log(error);
                });
-             })
+
        }
 }
 
@@ -162,10 +196,12 @@ render() {
             <input
                  type="text"
                  id="NewIPFSContent"
+                 ref="b"
                  placeholder="New Content"
 
                  name="NewIPFSContentName"
-             />
+             />{this.state.IPFSText}
+
               <button type="button" className="btn btn-link" onClick={() => this.addIPFSContent()}>Add IPFS Content</button>
            {ShowMessage}
 
